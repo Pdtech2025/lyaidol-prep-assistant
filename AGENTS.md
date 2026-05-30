@@ -1,65 +1,91 @@
-# 项目上下文
+# AGENTS.md
 
-### 版本技术栈
+## 项目概览
+
+云平台开发前期准备助手 (lyaidol-prep-assistant) — 面向开发者的智能文档分析与准备工作台，帮助开发团队在启动 Lyaidol B端云平台开发前系统性地理解文档、提取重点、规划任务、答疑解惑。
+
+## 版本技术栈
 
 - **Framework**: Next.js 16 (App Router)
 - **Core**: React 19
 - **Language**: TypeScript 5
 - **UI 组件**: shadcn/ui (基于 Radix UI)
 - **Styling**: Tailwind CSS 4
+- **SDK**: coze-coding-dev-sdk (LLM/Fetch/TTS/ASR/S3)
 
 ## 目录结构
 
 ```
-├── public/                 # 静态资源
-├── scripts/                # 构建与启动脚本
-│   ├── build.sh            # 构建脚本
-│   ├── dev.sh              # 开发环境启动脚本
-│   ├── prepare.sh          # 预处理脚本
-│   └── start.sh            # 生产环境启动脚本
 ├── src/
-│   ├── app/                # 页面路由与布局
-│   ├── components/ui/      # Shadcn UI 组件库
-│   ├── hooks/              # 自定义 Hooks
-│   ├── lib/                # 工具库
-│   │   └── utils.ts        # 通用工具函数 (cn)
-│   └── server.ts           # 自定义服务端入口
-├── next.config.ts          # Next.js 配置
-├── package.json            # 项目依赖管理
-└── tsconfig.json           # TypeScript 配置
+│   ├── app/
+│   │   ├── api/                    # 21个API路由
+│   │   │   ├── fetch-url/          # 文档抓取/粘贴
+│   │   │   ├── summarize/          # SSE智能摘要
+│   │   │   ├── checklist/          # SSE任务清单
+│   │   │   ├── chat/               # SSE多轮问答
+│   │   │   ├── tts/                # 文字转语音
+│   │   │   ├── asr/                # 语音转文字
+│   │   │   ├── voice/list/         # 音色列表
+│   │   │   ├── voice/add/          # 添加自定义音色
+│   │   │   ├── voice/preview/      # 试听音色
+│   │   │   ├── document/save/      # 保存文档
+│   │   │   ├── document/list/      # 文档列表
+│   │   │   ├── document/[id]/      # 文档详情
+│   │   │   ├── settings/           # 用户配置GET/POST
+│   │   │   ├── analyze-modules/    # SSE模块矩阵分析
+│   │   │   ├── analyze-idol/       # SSE idol专项分析
+│   │   │   └── analyze-apis/       # SSE API追踪分析
+│   │   ├── globals.css             # 全局样式(深色主题)
+│   │   ├── layout.tsx              # 根布局
+│   │   └── page.tsx                # 主页面(9视图)
+│   ├── components/ui/              # shadcn/ui组件库
+│   ├── hooks/
+│   │   └── use-sse-stream.ts       # SSE流式读取Hook
+│   └── lib/
+│       ├── api.ts                  # API客户端封装
+│       ├── storage.ts              # S3存储封装(索引管理)
+│       ├── types.ts                # 类型定义
+│       └── utils.ts                # 工具函数
+├── SPEC.md                         # 完整规格文档
+├── DESIGN.md                       # 设计规范
+└── package.json
 ```
-
-- 项目文件（如 app 目录、pages 目录、components 等）默认初始化到 `src/` 目录下。
 
 ## 包管理规范
 
-**仅允许使用 pnpm** 作为包管理器，**严禁使用 npm 或 yarn**。
-**常用命令**：
-- 安装依赖：`pnpm add <package>`
-- 安装开发依赖：`pnpm add -D <package>`
-- 安装所有依赖：`pnpm install`
-- 移除依赖：`pnpm remove <package>`
+**仅允许使用 pnpm**，严禁 npm 或 yarn。
 
 ## 开发规范
 
 ### 编码规范
 
-- 默认按 TypeScript `strict` 心智写代码；优先复用当前作用域已声明的变量、函数、类型和导入，禁止引用未声明标识符或拼错变量名。
-- 禁止隐式 `any` 和 `as any`；函数参数、返回值、解构项、事件对象、`catch` 错误在使用前应有明确类型或先完成类型收窄，并清理未使用的变量和导入。
+- TypeScript strict模式，禁止隐式 any 和 as any
+- 函数参数、返回值、事件对象必须有明确类型
+- JSX字符串中禁止使用ASCII双引号作为中文引号，改用「」或{'xxx'}表达式
+- 清理未使用的变量和导入
 
-### next.config 配置规范
+### SSE流式接口规范
 
-- 配置的路径不要写死绝对路径，必须使用 path.resolve(__dirname, ...)、import.meta.dirname 或 process.cwd() 动态拼接。
+- 后端: ReadableStream + `text/event-stream` Content-Type
+- 前端: fetch + body.getReader() 逐块读取
+- useSSEStream Hook封装了完整的流式读取逻辑
 
-### Hydration 问题防范
+### S3存储索引规范
 
-1. 严禁在 JSX 渲染逻辑中直接使用 typeof window、Date.now()、Math.random() 等动态数据。**必须使用 'use client' 并配合 useEffect + useState 确保动态内容仅在客户端挂载后渲染**；同时严禁非法 HTML 嵌套（如 <p> 嵌套 <div>）。
-2. **禁止使用 head 标签**，优先使用 metadata，详见文档：https://nextjs.org/docs/app/api-reference/functions/generate-metadata
-   1. 三方 CSS、字体等资源可在 `globals.css` 中顶部通过 `@import` 引入或使用 next/font
-   2. preload, preconnect, dns-prefetch 通过 ReactDOM 的 preload、preconnect、dns-prefetch 方法引入
-   3. json-ld 可阅读 https://nextjs.org/docs/app/guides/json-ld
+- 文档保存时同时写入索引文件 (`documents/index_<hash>.json`)
+- listDocuments/getDocument 通过索引查找，而非listFiles遍历
+- 索引格式: `{ documents: [{ id, title, source, storageKey, createdAt }] }`
 
-## UI 设计与组件规范 (UI & Styling Standards)
+### Next.js配置
 
-- 模板默认预装核心组件库 `shadcn/ui`，位于`src/components/ui/`目录下
-- Next.js 项目**必须默认**采用 shadcn/ui 组件、风格和规范，**除非用户指定用其他的组件和规范。**
+- 路径使用 path.resolve/__dirname 动态拼接
+- 禁止在JSX中使用 typeof window / Date.now() / Math.random()
+- 使用 'use client' + useEffect + useState 确保客户端渲染
+
+## 构建与测试命令
+
+- 安装依赖: `pnpm install`
+- 类型检查: `pnpm ts-check`
+- Lint: `pnpm lint`
+- 构建: `pnpm build`
+- 开发: `coze dev` (端口5000)
