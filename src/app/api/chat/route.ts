@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { LLMClient, Config, HeaderUtils, type Message } from "coze-coding-dev-sdk";
-import storage from "@/lib/storage";
+import storage, { findDocById } from "@/lib/storage";
 
 const SYSTEM_PROMPT_CHAT = `你是云平台开发前期准备助手。你精通B端SaaS平台开发、云平台架构设计、前后端分离项目开发流程。
 
@@ -26,10 +26,9 @@ export async function POST(request: NextRequest) {
     let documentContext = "";
     if (docId) {
       try {
-        const listResult = await storage.listFiles({ prefix: "documents/", maxKeys: 100 });
-        const docKey = listResult.keys.find((k: string) => k.includes(docId));
-        if (docKey) {
-          const docBuffer = await storage.readFile({ fileKey: docKey });
+        const entry = await findDocById(docId);
+        if (entry) {
+          const docBuffer = await storage.readFile({ fileKey: entry.key });
           const docData = JSON.parse(docBuffer.toString("utf-8"));
           documentContext = docData.content;
         }

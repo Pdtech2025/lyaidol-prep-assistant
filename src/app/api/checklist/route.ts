@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { LLMClient, Config, HeaderUtils, type Message } from "coze-coding-dev-sdk";
-import storage from "@/lib/storage";
+import storage, { findDocById } from "@/lib/storage";
 
 const SYSTEM_PROMPT_CHECKLIST = `你是云平台开发前期准备专家。根据提供的开发文档，生成结构化的准备工作清单。
 
@@ -37,13 +37,12 @@ export async function POST(request: NextRequest) {
       return new Response(JSON.stringify({ error: "缺少docId" }), { status: 400 });
     }
 
-    const listResult = await storage.listFiles({ prefix: "documents/", maxKeys: 100 });
-    const docKey = listResult.keys.find((k: string) => k.includes(docId));
-    if (!docKey) {
+    const entry = await findDocById(docId);
+    if (!entry) {
       return new Response(JSON.stringify({ error: "文档不存在" }), { status: 404 });
     }
 
-    const docBuffer = await storage.readFile({ fileKey: docKey });
+    const docBuffer = await storage.readFile({ fileKey: entry.key });
     const docData = JSON.parse(docBuffer.toString("utf-8"));
 
     const customHeaders = HeaderUtils.extractForwardHeaders(request.headers);

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { FetchClient, Config, HeaderUtils, type FetchContentItem } from "coze-coding-dev-sdk";
-import storage from "@/lib/storage";
+import storage, { addDocToIndex } from "@/lib/storage";
 
 export async function POST(request: NextRequest) {
   try {
@@ -55,6 +55,9 @@ export async function POST(request: NextRequest) {
       fileName: `documents/${id}.json`,
       contentType: "application/json",
     });
+
+    // Add to document index
+    await addDocToIndex({ id, key, title, source, createdAt: docData.createdAt });
 
     return NextResponse.json({
       docId: id,

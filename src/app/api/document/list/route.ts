@@ -1,26 +1,15 @@
 import { NextResponse } from "next/server";
-import storage from "@/lib/storage";
+import { getDocIndex } from "@/lib/storage";
 
 export async function GET() {
   try {
-    const listResult = await storage.listFiles({ prefix: "documents/", maxKeys: 100 });
-    const documents = [];
-
-    for (const key of listResult.keys) {
-      try {
-        const buffer = await storage.readFile({ fileKey: key });
-        const data = JSON.parse(buffer.toString("utf-8"));
-        documents.push({
-          id: data.id,
-          title: data.title,
-          source: data.source,
-          stats: data.stats,
-          createdAt: data.createdAt,
-        });
-      } catch {
-        // Skip corrupted files
-      }
-    }
+    const index = await getDocIndex();
+    const documents = index.map((entry) => ({
+      id: entry.id,
+      title: entry.title,
+      source: entry.source,
+      createdAt: entry.createdAt,
+    }));
 
     return NextResponse.json({ documents });
   } catch (error: unknown) {

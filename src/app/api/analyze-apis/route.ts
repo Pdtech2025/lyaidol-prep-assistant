@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { LLMClient, Config, HeaderUtils, type Message } from "coze-coding-dev-sdk";
-import storage from "@/lib/storage";
+import storage, { findDocById } from "@/lib/storage";
 
 const SYSTEM_PROMPT_API_TRACKER = `你是云平台API接口分析专家。请对提供的开发文档中的所有API接口进行系统分析，输出以下JSON格式（不要输出其他文字，只输出JSON）：
 {
@@ -39,13 +39,12 @@ export async function POST(request: NextRequest) {
       return new Response(JSON.stringify({ error: "缺少docId" }), { status: 400 });
     }
 
-    const listResult = await storage.listFiles({ prefix: "documents/", maxKeys: 100 });
-    const docKey = listResult.keys.find((k: string) => k.includes(docId));
-    if (!docKey) {
+    const entry = await findDocById(docId);
+    if (!entry) {
       return new Response(JSON.stringify({ error: "文档不存在" }), { status: 404 });
     }
 
-    const docBuffer = await storage.readFile({ fileKey: docKey });
+    const docBuffer = await storage.readFile({ fileKey: entry.key });
     const docData = JSON.parse(docBuffer.toString("utf-8"));
 
     const customHeaders = HeaderUtils.extractForwardHeaders(request.headers);

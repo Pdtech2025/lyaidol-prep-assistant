@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import storage from "@/lib/storage";
+import storage, { findDocById } from "@/lib/storage";
 
 export async function GET(
   _request: NextRequest,
@@ -7,14 +7,13 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
-    const listResult = await storage.listFiles({ prefix: "documents/", maxKeys: 100 });
-    const docKey = listResult.keys.find((k: string) => k.includes(id));
+    const entry = await findDocById(id);
 
-    if (!docKey) {
+    if (!entry) {
       return NextResponse.json({ error: "文档不存在" }, { status: 404 });
     }
 
-    const buffer = await storage.readFile({ fileKey: docKey });
+    const buffer = await storage.readFile({ fileKey: entry.key });
     const data = JSON.parse(buffer.toString("utf-8"));
 
     return NextResponse.json(data);

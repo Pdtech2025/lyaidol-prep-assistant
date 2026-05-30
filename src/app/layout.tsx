@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
+import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Lyaidol 云平台开发准备助手",
-  description: "智能文档分析与开发前期准备工作台",
+  title: "云平台开发前期准备助手",
+  description: "智能文档分析与开发准备工作台 — Lyaidol B端云平台",
 };
 
 export default function RootLayout({
@@ -12,7 +13,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="zh-CN" className="dark">
-      <body className="antialiased min-h-screen bg-background text-foreground">
+      <body className="antialiased">
         {children}
       </body>
     </html>

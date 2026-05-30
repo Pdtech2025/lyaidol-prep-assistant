@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import storage from "@/lib/storage";
+import storage, { addDocToIndex } from "@/lib/storage";
 
 export async function POST(request: NextRequest) {
   try {
@@ -26,6 +26,9 @@ export async function POST(request: NextRequest) {
       fileName: `documents/${id}.json`,
       contentType: "application/json",
     });
+
+    // Add to document index
+    await addDocToIndex({ id, key, title: docData.title, source: "manual", createdAt: docData.createdAt });
 
     return NextResponse.json({ docId: id, key });
   } catch (error: unknown) {
