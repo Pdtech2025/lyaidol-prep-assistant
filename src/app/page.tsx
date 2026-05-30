@@ -189,7 +189,7 @@ function DashboardView() {
       <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
         <StatCard title="设备总数" value={stats.totalDevices} sub={`在线 ${stats.onlineDevices}`} color="text-blue-400" />
         <StatCard title="今日订单" value={stats.todayOrders} sub={`累计 ${stats.totalOrders}`} color="text-emerald-400" />
-        <StatCard title="今日营收" value={`¥${stats.todayRevenue.toLocaleString()}`} sub={`累计 ¥${stats.totalRevenue.toLocaleString()}`} color="text-amber-400" />
+        <StatCard title="今日营收" value={`¥${stats.todayRevenue.toFixed(0)}`} sub={`累计 ¥${stats.totalRevenue.toFixed(0)}`} color="text-amber-400" />
         <StatCard title="今日新增会员" value={stats.newMembersToday} sub={`累计 ${stats.totalMembers}`} color="text-purple-400" />
         <StatCard title="活跃idol" value={stats.activeIdols} sub={`待处理反馈 ${stats.pendingFeedback}`} color="text-cyan-400" />
       </div>
@@ -216,7 +216,7 @@ function DashboardView() {
                 <Badge status={fb.status} />
                 <div className="flex-1 min-w-0">
                   <p className="text-sm text-foreground truncate">{fb.content}</p>
-                  <p className="text-xs text-muted-foreground">{fb.userName} · {new Date(fb.createdAt).toLocaleDateString()}</p>
+                  <p className="text-xs text-muted-foreground">{fb.userName} · {new Date(fb.createdAt).toISOString().slice(0,10)}</p>
                 </div>
               </div>
             ))}
@@ -247,7 +247,7 @@ function UsersView() {
           { key: 'role', title: '角色', render: (r) => roleLabel(r.role) },
           { key: 'departmentId', title: '部门', render: (r) => mockDepartments.find(d => d.id === r.departmentId)?.name || '-' },
           { key: 'status', title: '状态', render: (r) => <Badge status={r.status} /> },
-          { key: 'lastLoginAt', title: '最后登录', render: (r) => r.lastLoginAt ? new Date(r.lastLoginAt).toLocaleDateString() : '-' },
+          { key: 'lastLoginAt', title: '最后登录', render: (r) => r.lastLoginAt ? new Date(r.lastLoginAt).toISOString().slice(0,10) : '-' },
         ]} />
       )}
       {tab === 'roles' && (
@@ -261,7 +261,7 @@ function UsersView() {
         <DataTable data={mockDepartments} keyField="id" columns={[
           { key: 'name', title: '部门名称' },
           { key: 'memberCount', title: '成员数' },
-          { key: 'createdAt', title: '创建时间', render: (r) => new Date(r.createdAt).toLocaleDateString() },
+          { key: 'createdAt', title: '创建时间', render: (r) => new Date(r.createdAt).toISOString().slice(0,10) },
         ]} />
       )}
     </div>
@@ -288,7 +288,7 @@ function DevicesView() {
         { key: 'location', title: '位置' },
         { key: 'firmwareVersion', title: '固件版本' },
         { key: 'status', title: '状态', render: (r) => <Badge status={r.status} /> },
-        { key: 'lastOnlineAt', title: '最后在线', render: (r) => r.lastOnlineAt ? new Date(r.lastOnlineAt).toLocaleDateString() : '-' },
+        { key: 'lastOnlineAt', title: '最后在线', render: (r) => r.lastOnlineAt ? new Date(r.lastOnlineAt).toISOString().slice(0,10) : '-' },
       ]} />
     </div>
   );
@@ -306,7 +306,7 @@ function ProductsView() {
         { key: 'price', title: '价格', render: (r) => `¥${r.price}` },
         { key: 'salesCount', title: '销量' },
         { key: 'status', title: '状态', render: (r) => <Badge status={r.status} /> },
-        { key: 'createdAt', title: '创建时间', render: (r) => new Date(r.createdAt).toLocaleDateString() },
+        { key: 'createdAt', title: '创建时间', render: (r) => new Date(r.createdAt).toISOString().slice(0,10) },
       ]} />
     </div>
   );
@@ -348,8 +348,8 @@ function OrdersView() {
         { key: 'deviceName', title: '设备' },
         { key: 'totalAmount', title: '金额', render: (r) => `¥${r.totalAmount}` },
         { key: 'status', title: '状态', render: (r) => <Badge status={r.status} /> },
-        { key: 'createdAt', title: '创建时间', render: (r) => new Date(r.createdAt).toLocaleDateString() },
-        { key: 'paidAt', title: '支付时间', render: (r) => r.paidAt ? new Date(r.paidAt).toLocaleDateString() : '-' },
+        { key: 'createdAt', title: '创建时间', render: (r) => new Date(r.createdAt).toISOString().slice(0,10) },
+        { key: 'paidAt', title: '支付时间', render: (r) => r.paidAt ? new Date(r.paidAt).toISOString().slice(0,10) : '-' },
       ]} />
     </div>
   );
@@ -366,7 +366,7 @@ function MembersView() {
         { key: 'points', title: '积分' },
         { key: 'totalSpent', title: '累计消费', render: (r) => `¥${r.totalSpent}` },
         { key: 'visitCount', title: '访问次数' },
-        { key: 'lastVisitAt', title: '最近访问', render: (r) => r.lastVisitAt ? new Date(r.lastVisitAt).toLocaleDateString() : '-' },
+        { key: 'lastVisitAt', title: '最近访问', render: (r) => r.lastVisitAt ? new Date(r.lastVisitAt).toISOString().slice(0,10) : '-' },
       ]} />
     </div>
   );
@@ -381,7 +381,7 @@ function FeedbackView() {
         { key: 'content', title: '反馈内容' },
         { key: 'status', title: '状态', render: (r) => <Badge status={r.status} /> },
         { key: 'reply', title: '回复', render: (r) => r.reply || <span className="text-muted-foreground">未回复</span> },
-        { key: 'createdAt', title: '提交时间', render: (r) => new Date(r.createdAt).toLocaleDateString() },
+        { key: 'createdAt', title: '提交时间', render: (r) => new Date(r.createdAt).toISOString().slice(0,10) },
       ]} />
     </div>
   );
@@ -462,7 +462,7 @@ function KnowledgeView() {
         { key: 'type', title: '类型', render: (r) => r.type === 'document' ? '文档型' : 'QA问答型' },
         { key: 'documentCount', title: '文档数' },
         { key: 'status', title: '状态', render: (r) => <Badge status={r.status} /> },
-        { key: 'createdAt', title: '创建时间', render: (r) => new Date(r.createdAt).toLocaleDateString() },
+        { key: 'createdAt', title: '创建时间', render: (r) => new Date(r.createdAt).toISOString().slice(0,10) },
       ]} />
     </div>
   );
@@ -480,7 +480,7 @@ function RolesView() {
         { key: 'personality', title: '性格' },
         { key: 'language', title: '语言' },
         { key: 'status', title: '状态', render: (r) => <Badge status={r.status} /> },
-        { key: 'createdAt', title: '创建时间', render: (r) => new Date(r.createdAt).toLocaleDateString() },
+        { key: 'createdAt', title: '创建时间', render: (r) => new Date(r.createdAt).toISOString().slice(0,10) },
       ]} />
     </div>
   );
@@ -570,8 +570,8 @@ function LotteryView() {
         { key: 'type', title: '类型', render: (r) => ({ wheel: '大转盘', scratch: '刮刮卡', box: '盲盒' } as Record<string, string>)[r.type] || r.type },
         { key: 'participantCount', title: '参与人数' },
         { key: 'status', title: '状态', render: (r) => <Badge status={r.status} /> },
-        { key: 'startTime', title: '开始时间', render: (r) => new Date(r.startTime).toLocaleDateString() },
-        { key: 'endTime', title: '结束时间', render: (r) => new Date(r.endTime).toLocaleDateString() },
+        { key: 'startTime', title: '开始时间', render: (r) => new Date(r.startTime).toISOString().slice(0,10) },
+        { key: 'endTime', title: '结束时间', render: (r) => new Date(r.endTime).toISOString().slice(0,10) },
       ]} />
     </div>
   );
