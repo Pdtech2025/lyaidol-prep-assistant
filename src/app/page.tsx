@@ -159,7 +159,7 @@ function DocumentView({ onDocumentLoaded }: { onDocumentLoaded: (doc: DocInfo) =
   const [title, setTitle] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [docList, setDocList] = useState<Array<{ docId: string; title: string; createdAt: string }>>([]);
+  const [docList, setDocList] = useState<Array<{ id: string; title: string; createdAt: string }>>([]);
   const [currentDoc, setCurrentDoc] = useState<DocInfo | null>(null);
 
   useEffect(() => {
@@ -307,8 +307,8 @@ function DocumentView({ onDocumentLoaded }: { onDocumentLoaded: (doc: DocInfo) =
           <h3 className="text-sm font-medium text-foreground mb-2">已存文档</h3>
           {docList.map((doc) => (
             <button
-              key={doc.docId}
-              onClick={() => handleLoadDoc(doc.docId)}
+              key={doc.id}
+              onClick={() => handleLoadDoc(doc.id)}
               className="w-full flex items-center justify-between px-3 py-2 rounded-md hover:bg-accent text-left transition-colors"
             >
               <span className="text-sm text-foreground">{doc.title}</span>
