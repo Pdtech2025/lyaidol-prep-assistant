@@ -209,6 +209,36 @@ export interface FlashMessage {
   createdAt: string;
 }
 
+export interface Message {
+  id: string;
+  title: string;
+  content: string;
+  type: 'system' | 'promotion' | 'notification' | 'interaction';
+  target: 'all' | 'device' | 'user';
+  targetId?: string;
+  targetName?: string;
+  targetType?: 'all' | 'device' | 'member';
+  status: 'sent' | 'scheduled' | 'draft';
+  isRead?: boolean;
+  sentAt?: string;
+  scheduledAt?: string;
+  createdAt: string;
+}
+
+export interface MediaFile {
+  id: string;
+  name: string;
+  type: 'image' | 'video' | 'audio';
+  size: number;
+  url: string;
+  bucket: string;
+  uploader?: string;
+  bindType?: 'product' | 'idol' | 'device' | 'none';
+  bindTarget?: string;
+  uploadedAt: string;
+  uploadedBy: string;
+}
+
 // ========== 仪表盘 ==========
 
 export interface DashboardStats {

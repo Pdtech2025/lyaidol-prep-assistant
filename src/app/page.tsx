@@ -5,12 +5,14 @@ import type {
   User, Device, Product, Order, Member, IdolConfig, VoicePreset,
   KnowledgeBase, IdolRole, IdolFigure, CarouselItem, LotteryActivity,
   Venue, FlashMessage, FeedbackItem, DashboardStats, Department,
+  MediaFile, Message,
 } from '@/lib/types';
 import {
   mockUsers, mockDevices, mockProducts, mockOrders, mockMembers,
   mockIdolConfigs, mockVoicePresets, mockKnowledgeBases, mockIdolRoles,
   mockIdolFigures, mockCarousels, mockLotteries, mockVenues,
-  mockFlashMessages, mockFeedbacks, mockDashboardStats, mockDepartments,
+  mockFlashMessages, mockMessages, mockFeedbacks, mockDashboardStats, mockDepartments,
+  mockMediaFiles,
   mockRevenueChart, mockOrderChart, mockDeviceStatusChart,
 } from '@/lib/mock-data';
 
@@ -18,7 +20,7 @@ import {
 type ViewId = 'dashboard' | 'users' | 'devices' | 'products' | 'orders' | 'members' | 'feedback'
   | 'idol' | 'voice' | 'knowledge' | 'roles' | 'figures' | 'ui-style'
   | 'lottery' | 'flash' | 'messages' | 'venues'
-  | 'carousel' | 'miniapp' | 'settings' | 'system';
+  | 'carousel' | 'miniapp' | 'settings' | 'system' | 'media' | 'security';
 
 interface NavGroup {
   label: string;
@@ -60,6 +62,8 @@ const NAV_GROUPS: NavGroup[] = [
   ]},
   { label: '系统', items: [
     { id: 'miniapp', label: '小程序管理', icon: '📱' },
+    { id: 'media', label: '图片视频存储', icon: '🎞' },
+    { id: 'security', label: '数据安全', icon: '🔒' },
     { id: 'settings', label: '系统配置', icon: '⚙' },
     { id: 'system', label: '运维中心', icon: '🔧' },
   ]},
@@ -595,14 +599,64 @@ function FlashView() {
 }
 
 function MessagesView() {
+  const [filter, setFilter] = useState<'all'|'unread'|'read'>('all');
+  const [showSend, setShowSend] = useState(false);
+  const [sendForm, setSendForm] = useState({ title: '', content: '', target: 'all' as 'all'|'device'|'user', targetId: '' });
+  const messages = mockMessages.filter(m => filter === 'all' || (filter === 'unread' ? !m.isRead : m.isRead));
   return (
     <div>
       <PageHeader title="消息推送" desc="C端用户消息推送管理" action={
-        <button className="px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors">发送消息</button>
+        <button onClick={() => setShowSend(true)} className="px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors">+ 发送消息</button>
       } />
-      <div className="rounded-lg border border-border bg-card p-8 text-center text-muted-foreground">
-        消息推送功能开发中...
+      <div className="flex gap-2 mb-4">
+        {(['all','unread','read'] as const).map(f => (
+          <button key={f} onClick={() => setFilter(f)} className={`px-3 py-1.5 text-xs rounded-md transition-colors ${filter===f?'bg-blue-600 text-white':'bg-card border border-border text-muted-foreground hover:bg-accent'}`}>{f==='all'?'全部':f==='unread'?'未读':'已读'}</button>
+        ))}
       </div>
+      <div className="space-y-2">
+        {messages.map(m => (
+          <div key={m.id} className={`rounded-lg border border-border bg-card p-4 ${!m.isRead?'border-l-2 border-l-blue-500':''}`}>
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className={`inline-block w-1.5 h-1.5 rounded-full ${m.type==='system'?'bg-yellow-500':m.type==='interaction'?'bg-green-500':'bg-blue-500'}`}></span>
+                  <span className="text-sm font-medium text-foreground truncate">{m.title}</span>
+                  {!m.isRead && <span className="text-[10px] bg-blue-600 text-white px-1.5 py-0.5 rounded">新</span>}
+                </div>
+                <p className="text-xs text-muted-foreground line-clamp-2">{m.content}</p>
+                <div className="flex items-center gap-3 mt-2 text-[10px] text-muted-foreground">
+                  <span>{m.type==='system'?'系统消息':m.type==='interaction'?'互动消息':'通知'}</span>
+                  <span>→ {m.targetType==='all'?'全部用户':m.targetType==='device'?'设备:'+m.targetId:'用户:'+m.targetId}</span>
+                  <span>{m.createdAt}</span>
+                </div>
+              </div>
+              <button className="text-xs text-muted-foreground hover:text-foreground px-2 py-1 rounded border border-border">{m.isRead?'已读':'标为已读'}</button>
+            </div>
+          </div>
+        ))}
+        {messages.length===0 && <div className="text-center text-muted-foreground text-sm py-12">暂无消息</div>}
+      </div>
+      {showSend && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50" onClick={()=>setShowSend(false)}>
+          <div className="bg-card border border-border rounded-xl p-6 w-full max-w-lg" onClick={e=>e.stopPropagation()}>
+            <h3 className="text-lg font-medium text-foreground mb-4">发送消息</h3>
+            <div className="space-y-3">
+              <div><label className="text-xs text-muted-foreground mb-1 block">消息标题</label><input value={sendForm.title} onChange={e=>setSendForm({...sendForm,title:e.target.value})} className="w-full bg-input border border-border rounded-lg px-3 py-2 text-sm text-foreground" placeholder="输入消息标题" /></div>
+              <div><label className="text-xs text-muted-foreground mb-1 block">消息内容</label><textarea value={sendForm.content} onChange={e=>setSendForm({...sendForm,content:e.target.value})} className="w-full bg-input border border-border rounded-lg px-3 py-2 text-sm text-foreground h-24 resize-none" placeholder="输入消息内容" /></div>
+              <div><label className="text-xs text-muted-foreground mb-1 block">推送目标</label>
+                <select value={sendForm.target} onChange={e=>setSendForm({...sendForm,target:e.target.value as 'all'|'device'|'user'})} className="w-full bg-input border border-border rounded-lg px-3 py-2 text-sm text-foreground">
+                  <option value="all">全部用户</option><option value="device">指定设备</option><option value="user">指定用户</option>
+                </select>
+              </div>
+              {sendForm.target!=='all' && <div><label className="text-xs text-muted-foreground mb-1 block">目标ID</label><input value={sendForm.targetId} onChange={e=>setSendForm({...sendForm,targetId:e.target.value})} className="w-full bg-input border border-border rounded-lg px-3 py-2 text-sm text-foreground" placeholder={sendForm.target==='device'?'输入设备ID':'输入用户ID'} /></div>}
+            </div>
+            <div className="flex justify-end gap-3 mt-6">
+              <button onClick={()=>setShowSend(false)} className="px-4 py-2 text-sm text-muted-foreground hover:text-foreground">取消</button>
+              <button onClick={()=>{setShowSend(false)}} className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700">确认发送</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -620,6 +674,172 @@ function VenuesView() {
         { key: 'devices', title: '关联设备数' },
         { key: 'status', title: '状态', render: (r) => <Badge status={r.status} /> },
       ]} />
+    </div>
+  );
+}
+
+function MediaView() {
+  const [files, setFiles] = useState(mockMediaFiles);
+  const [uploading, setUploading] = useState(false);
+  const [filter, setFilter] = useState<'all' | 'image' | 'video'>('all');
+
+  const filtered = filter === 'all' ? files : files.filter(f => f.type === filter);
+  const totalSize = files.reduce((s, f) => s + f.size, 0);
+  const imageCount = files.filter(f => f.type === 'image').length;
+  const videoCount = files.filter(f => f.type === 'video').length;
+
+  const handleUpload = () => {
+    setUploading(true);
+    setTimeout(() => {
+      const newFile: MediaFile = {
+        id: `media_${Date.now()}`,
+        name: `upload_${Math.random().toString(36).slice(2, 8)}.jpg`,
+        type: 'image',
+        size: Math.floor(Math.random() * 5000000) + 500000,
+        url: '',
+        bucket: 'lyaidol-media',
+        uploader: '当前用户',
+        uploadedAt: new Date().toISOString().slice(0, 10),
+        uploadedBy: '当前用户',
+        bindTarget: undefined,
+        bindType: undefined,
+      };
+      setFiles((prev: MediaFile[]) => [newFile, ...prev]);
+      setUploading(false);
+    }, 1500);
+  };
+
+  const handleDelete = (id: string) => setFiles((prev: MediaFile[]) => prev.filter(f => f.id !== id));
+  const handleBind = (id: string, target: string, bType: MediaFile['bindType']) => {
+    setFiles((prev: MediaFile[]) => prev.map(f => f.id === id ? { ...f, bindTarget: target, bindType: bType } : f));
+  };
+  const formatSize = (bytes: number) => bytes >= 1048576 ? (bytes / 1048576).toFixed(1) + ' MB' : (bytes / 1024).toFixed(0) + ' KB';
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h2 className="text-xl font-medium text-foreground">图片视频存储</h2>
+        <button onClick={handleUpload} disabled={uploading}
+          className="px-4 py-2 rounded-lg bg-blue-500 text-white text-sm hover:bg-blue-600 disabled:opacity-50">
+          {uploading ? '上传中...' : '+ 上传文件'}
+        </button>
+      </div>
+
+      <div className="grid grid-cols-3 gap-4">
+        <div className="bg-card rounded-lg p-4 border border-border">
+          <div className="text-sm text-muted-foreground">总存储量</div>
+          <div className="text-2xl font-semibold text-foreground mt-1">{formatSize(totalSize)}</div>
+        </div>
+        <div className="bg-card rounded-lg p-4 border border-border">
+          <div className="text-sm text-muted-foreground">图片数量</div>
+          <div className="text-2xl font-semibold text-foreground mt-1">{imageCount}</div>
+        </div>
+        <div className="bg-card rounded-lg p-4 border border-border">
+          <div className="text-sm text-muted-foreground">视频数量</div>
+          <div className="text-2xl font-semibold text-foreground mt-1">{videoCount}</div>
+        </div>
+      </div>
+
+      <div className="flex gap-2">
+        {(['all', 'image', 'video'] as const).map(t => (
+          <button key={t} onClick={() => setFilter(t)}
+            className={`px-3 py-1.5 rounded-lg text-sm ${filter === t ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30' : 'bg-card text-muted-foreground border border-border hover:bg-muted'}`}>
+            {t === 'all' ? '全部' : t === 'image' ? '图片' : '视频'}
+          </button>
+        ))}
+      </div>
+
+      <div className="bg-card rounded-lg border border-border overflow-hidden">
+        <table className="w-full">
+          <thead><tr className="border-b border-border bg-muted/30">
+            <th className="text-left p-3 text-xs text-muted-foreground font-medium">文件名</th>
+            <th className="text-left p-3 text-xs text-muted-foreground font-medium">类型</th>
+            <th className="text-left p-3 text-xs text-muted-foreground font-medium">大小</th>
+            <th className="text-left p-3 text-xs text-muted-foreground font-medium">上传者</th>
+            <th className="text-left p-3 text-xs text-muted-foreground font-medium">上传时间</th>
+            <th className="text-left p-3 text-xs text-muted-foreground font-medium">绑定目标</th>
+            <th className="text-left p-3 text-xs text-muted-foreground font-medium">操作</th>
+          </tr></thead>
+          <tbody>
+            {filtered.map(f => (
+              <tr key={f.id} className="border-b border-border/50 hover:bg-muted/20">
+                <td className="p-3 text-sm text-foreground">{f.name}</td>
+                <td className="p-3"><span className={`text-xs px-2 py-0.5 rounded ${f.type === 'image' ? 'bg-green-500/10 text-green-400' : 'bg-purple-500/10 text-purple-400'}`}>{f.type === 'image' ? '图片' : '视频'}</span></td>
+                <td className="p-3 text-sm text-muted-foreground">{formatSize(f.size)}</td>
+                <td className="p-3 text-sm text-muted-foreground">{f.uploader}</td>
+                <td className="p-3 text-sm text-muted-foreground">{f.uploadedAt}</td>
+                <td className="p-3 text-sm">{f.bindTarget ? <span className="text-blue-400">{{device:'设备',product:'商品',idol:'角色',none:'无'}[f.bindType ?? 'none']}: {f.bindTarget}</span> : <span className="text-muted-foreground">未绑定</span>}</td>
+                <td className="p-3"><div className="flex gap-2">
+                  <button onClick={() => handleBind(f.id, `商品${Math.floor(Math.random() * 100)}`, 'product')} className="text-xs text-blue-400 hover:text-blue-300">绑定</button>
+                  <button onClick={() => handleDelete(f.id)} className="text-xs text-red-400 hover:text-red-300">删除</button>
+                </div></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+function SecurityView() {
+  const [rules, setRules] = useState([
+    { id: 's1', name: '密码复杂度', desc: '至少8位，包含大小写字母+数字+特殊字符', enabled: true, category: '密码策略' },
+    { id: 's2', name: '登录失败锁定', desc: '连续5次失败锁定30分钟', enabled: true, category: '密码策略' },
+    { id: 's3', name: '密码有效期', desc: '90天强制修改密码', enabled: false, category: '密码策略' },
+    { id: 's4', name: '传输加密', desc: 'HTTPS + AES-256端到端加密', enabled: true, category: '数据加密' },
+    { id: 's5', name: '存储加密', desc: '敏感字段AES-256加密存储', enabled: true, category: '数据加密' },
+    { id: 's6', name: 'Token有效期', desc: 'JWT Token 24小时过期', enabled: true, category: '访问控制' },
+    { id: 's7', name: 'IP白名单', desc: '仅允许指定IP段访问后台', enabled: false, category: '访问控制' },
+    { id: 's8', name: '操作日志', desc: '记录所有管理员操作轨迹', enabled: true, category: '审计日志' },
+    { id: 's9', name: '防机器人', desc: '登录验证码 + 接口限流', enabled: true, category: '防护策略' },
+    { id: 's10', name: 'SQL注入防护', desc: '参数化查询 + WAF规则', enabled: true, category: '防护策略' },
+  ]);
+
+  const toggleRule = (id: string) => setRules(prev => prev.map(r => r.id === id ? { ...r, enabled: !r.enabled } : r));
+  const categories = [...new Set(rules.map(r => r.category))];
+  const enabledCount = rules.filter(r => r.enabled).length;
+
+  return (
+    <div className="space-y-6">
+      <h2 className="text-xl font-medium text-foreground">数据与安全管理</h2>
+
+      <div className="grid grid-cols-3 gap-4">
+        <div className="bg-card rounded-lg p-4 border border-border">
+          <div className="text-sm text-muted-foreground">安全规则</div>
+          <div className="text-2xl font-semibold text-foreground mt-1">{rules.length}</div>
+        </div>
+        <div className="bg-card rounded-lg p-4 border border-border">
+          <div className="text-sm text-muted-foreground">已启用</div>
+          <div className="text-2xl font-semibold text-green-400 mt-1">{enabledCount}</div>
+        </div>
+        <div className="bg-card rounded-lg p-4 border border-border">
+          <div className="text-sm text-muted-foreground">安全评分</div>
+          <div className="text-2xl font-semibold text-foreground mt-1">{Math.round(enabledCount / rules.length * 100)}分</div>
+        </div>
+      </div>
+
+      {categories.map(cat => (
+        <div key={cat} className="bg-card rounded-lg border border-border overflow-hidden">
+          <div className="px-4 py-3 border-b border-border bg-muted/30">
+            <h3 className="text-sm font-medium text-foreground">{cat}</h3>
+          </div>
+          <div className="divide-y divide-border/50">
+            {rules.filter(r => r.category === cat).map(rule => (
+              <div key={rule.id} className="flex items-center justify-between px-4 py-3">
+                <div>
+                  <div className="text-sm font-medium text-foreground">{rule.name}</div>
+                  <div className="text-xs text-muted-foreground mt-0.5">{rule.desc}</div>
+                </div>
+                <button onClick={() => toggleRule(rule.id)}
+                  className={`relative w-10 h-5 rounded-full transition-colors ${rule.enabled ? 'bg-blue-500' : 'bg-muted'}`}>
+                  <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-transform ${rule.enabled ? 'left-5' : 'left-0.5'}`} />
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
     </div>
   );
 }
@@ -751,15 +971,170 @@ const VIEW_MAP: Record<ViewId, () => React.ReactNode> = {
   messages: MessagesView,
   venues: VenuesView,
   miniapp: MiniappView,
+  media: MediaView,
+  security: SecurityView,
   settings: SettingsView,
   system: SystemView,
 };
 
 // ========== 主应用 ==========
+// ─── 认证状态 ───
+interface AuthUser { id: string; username: string; role: string; tenantId: string; }
+
 export default function HomePage() {
+  const [authUser, setAuthUser] = useState<AuthUser | null>(null);
+  const [authLoading, setAuthLoading] = useState(true);
   const [currentView, setCurrentView] = useState<ViewId>('dashboard');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
+  // 登录表单状态
+  const [loginForm, setLoginForm] = useState({ username: '', password: '', captchaAnswer: '' });
+  const [captchaData, setCaptchaData] = useState<{ captchaId: string; svg: string } | null>(null);
+  const [loginError, setLoginError] = useState('');
+  const [loginSubmitting, setLoginSubmitting] = useState(false);
+
+  // 启动时验证Token
+  useEffect(() => {
+    (async () => {
+      const token = localStorage.getItem('auth_token');
+      if (token) {
+        try {
+          const resp = await fetch('/api/auth/verify', { headers: { Authorization: `Bearer ${token}` } });
+          if (resp.ok) {
+            const data = await resp.json();
+            setAuthUser(data.user);
+          } else {
+            localStorage.removeItem('auth_token');
+          }
+        } catch { localStorage.removeItem('auth_token'); }
+      }
+      setAuthLoading(false);
+    })();
+  }, []);
+
+  // 获取验证码
+  const fetchCaptcha = useCallback(async () => {
+    try {
+      const resp = await fetch('/api/auth/captcha');
+      const data = await resp.json();
+      setCaptchaData(data);
+    } catch { /* ignore */ }
+  }, []);
+
+  useEffect(() => { if (!authUser) fetchCaptcha(); }, [authUser, fetchCaptcha]);
+
+  // 登录
+  const handleLogin = useCallback(async () => {
+    if (!loginForm.username || !loginForm.password || !loginForm.captchaAnswer) {
+      setLoginError('请填写所有字段'); return;
+    }
+    setLoginSubmitting(true); setLoginError('');
+    try {
+      const resp = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          username: loginForm.username,
+          password: loginForm.password,
+          captchaId: captchaData?.captchaId,
+          captchaAnswer: loginForm.captchaAnswer,
+        }),
+      });
+      const data = await resp.json();
+      if (resp.ok) {
+        localStorage.setItem('auth_token', data.token);
+        setAuthUser(data.user);
+      } else {
+        setLoginError(data.error || '登录失败');
+        fetchCaptcha();
+        setLoginForm(f => ({ ...f, captchaAnswer: '' }));
+      }
+    } catch { setLoginError('网络错误'); }
+    setLoginSubmitting(false);
+  }, [loginForm, captchaData, fetchCaptcha]);
+
+  // 登出
+  const handleLogout = useCallback(() => {
+    localStorage.removeItem('auth_token');
+    setAuthUser(null);
+    setLoginForm({ username: '', password: '', captchaAnswer: '' });
+  }, []);
+
+  // 加载中
+  if (authLoading) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-background">
+        <div className="text-muted-foreground text-sm">加载中...</div>
+      </div>
+    );
+  }
+
+  // 未登录 → 登录页
+  if (!authUser) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-background">
+        <div className="w-full max-w-sm">
+          <div className="text-center mb-8">
+            <h1 className="text-2xl font-bold text-foreground">Lyaidol</h1>
+            <p className="text-sm text-muted-foreground mt-1">B端云平台管理系统</p>
+          </div>
+          <div className="bg-card border border-border rounded-xl p-6 space-y-4">
+            <div>
+              <label className="block text-xs text-muted-foreground mb-1.5">用户名</label>
+              <input
+                type="text" value={loginForm.username}
+                onChange={e => setLoginForm(f => ({ ...f, username: e.target.value }))}
+                className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:border-blue-500"
+                placeholder="请输入用户名" onKeyDown={e => e.key === 'Enter' && handleLogin()}
+              />
+            </div>
+            <div>
+              <label className="block text-xs text-muted-foreground mb-1.5">密码</label>
+              <input
+                type="password" value={loginForm.password}
+                onChange={e => setLoginForm(f => ({ ...f, password: e.target.value }))}
+                className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:border-blue-500"
+                placeholder="请输入密码" onKeyDown={e => e.key === 'Enter' && handleLogin()}
+              />
+            </div>
+            <div>
+              <label className="block text-xs text-muted-foreground mb-1.5">验证码</label>
+              <div className="flex gap-2">
+                <input
+                  type="text" value={loginForm.captchaAnswer}
+                  onChange={e => setLoginForm(f => ({ ...f, captchaAnswer: e.target.value }))}
+                  className="flex-1 bg-background border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:border-blue-500"
+                  placeholder="请输入验证码" onKeyDown={e => e.key === 'Enter' && handleLogin()}
+                />
+                {captchaData && (
+                  <div
+                    className="flex-shrink-0 cursor-pointer rounded-lg overflow-hidden border border-border hover:opacity-80 transition-opacity"
+                    onClick={fetchCaptcha} title="点击刷新验证码"
+                    dangerouslySetInnerHTML={{ __html: captchaData.svg }}
+                  />
+                )}
+              </div>
+            </div>
+            {loginError && <div className="text-xs text-red-400">{loginError}</div>}
+            <button
+              onClick={handleLogin} disabled={loginSubmitting}
+              className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-lg py-2 text-sm font-medium transition-colors"
+            >
+              {loginSubmitting ? '登录中...' : '登 录'}
+            </button>
+            <div className="text-xs text-muted-foreground text-center">
+              默认账号: admin / admin123
+            </div>
+          </div>
+          <div className="mt-4 text-xs text-muted-foreground text-center">
+            密码采用AES-256-CBC加密传输 + bcrypt哈希存储
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // 已登录 → 主界面
   const ViewComponent = VIEW_MAP[currentView] || DashboardView;
 
   return (
@@ -800,14 +1175,17 @@ export default function HomePage() {
           ))}
         </nav>
         <div className="border-t border-border p-3">
-          {!sidebarCollapsed && (
+          {!sidebarCollapsed ? (
             <div className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded-full bg-blue-600 flex items-center justify-center text-xs text-white font-medium">管</div>
+              <div className="w-7 h-7 rounded-full bg-blue-600 flex items-center justify-center text-xs text-white font-medium">{authUser.username[0].toUpperCase()}</div>
               <div className="flex-1 min-w-0">
-                <div className="text-xs font-medium text-foreground truncate">管理员</div>
-                <div className="text-xs text-muted-foreground">租户管理员</div>
+                <div className="text-xs font-medium text-foreground truncate">{authUser.username}</div>
+                <div className="text-xs text-muted-foreground">{authUser.role === 'tenant_admin' ? '租户管理员' : '操作员'}</div>
               </div>
+              <button onClick={handleLogout} className="p-1 rounded hover:bg-muted text-muted-foreground" title="退出登录">⏻</button>
             </div>
+          ) : (
+            <button onClick={handleLogout} className="mx-auto block p-1 rounded hover:bg-muted text-muted-foreground" title="退出登录">⏻</button>
           )}
         </div>
       </aside>

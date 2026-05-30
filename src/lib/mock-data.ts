@@ -2,6 +2,7 @@ import type {
   User, Device, Product, Order, Member, IdolConfig, VoicePreset,
   KnowledgeBase, IdolRole, IdolFigure, CarouselItem, LotteryActivity,
   Venue, FlashMessage, FeedbackItem, DashboardStats, Department, ChartData,
+  Message, MediaFile,
 } from './types';
 
 // ========== 仪表盘 ==========
@@ -176,4 +177,26 @@ export const mockFlashMessages: FlashMessage[] = [
   { id: 'f1', title: '欢迎光临', content: '欢迎来到Lyaidol互动体验！', type: 'text', duration: 5, status: 'active', createdAt: '2025-06-01T00:00:00Z' },
   { id: 'f2', title: '生日快乐', content: '今天是你的生日，idol为你送上祝福！', type: 'animation', duration: 10, status: 'active', createdAt: '2025-06-15T00:00:00Z' },
   { id: 'f3', title: '新品上线', content: '全新互动模式上线啦！', type: 'image', duration: 8, status: 'inactive', createdAt: '2025-07-01T00:00:00Z' },
+];
+
+// ========== 消息推送 ==========
+export const mockMessages: Message[] = [
+  { id: 'm1', title: '系统维护通知', content: '平台将于本周六凌晨2:00-4:00进行系统维护，届时设备将暂停服务', type: 'system', target: 'all', targetType: 'all', status: 'sent', isRead: false, sentAt: '2025-06-20T10:00:00Z', createdAt: '2025-06-19T15:00:00Z' },
+  { id: 'm2', title: '618特别活动', content: '618期间投喂享双倍积分！活动时间6月16日-6月20日', type: 'promotion', target: 'all', targetType: 'all', status: 'sent', isRead: true, sentAt: '2025-06-16T00:00:00Z', createdAt: '2025-06-15T10:00:00Z' },
+  { id: 'm3', title: '设备离线提醒', content: '设备"蓝色港湾1号机"已离线超过2小时，请检查网络连接', type: 'notification', target: 'device', targetId: 'd1', targetName: '蓝色港湾1号机', targetType: 'device', status: 'sent', isRead: false, sentAt: '2025-06-22T08:30:00Z', createdAt: '2025-06-22T08:30:00Z' },
+  { id: 'm4', title: '会员互动消息', content: '会员张三对idol发送了互动消息', type: 'interaction', target: 'user', targetId: 'u3', targetName: '张三', targetType: 'member', status: 'sent', isRead: false, sentAt: '2025-06-22T12:00:00Z', createdAt: '2025-06-22T12:00:00Z' },
+  { id: 'm5', title: '暑期促销预告', content: '暑期即将到来，准备推出系列促销活动方案', type: 'promotion', target: 'all', targetType: 'all', status: 'scheduled', isRead: true, scheduledAt: '2025-07-01T00:00:00Z', createdAt: '2025-06-25T10:00:00Z' },
+  { id: 'm6', title: '新功能上线通知', content: '知识库管理功能已上线，支持QA问答型知识库配置', type: 'system', target: 'all', targetType: 'all', status: 'draft', isRead: true, createdAt: '2025-06-28T14:00:00Z' },
+  { id: 'm7', title: '设备异常告警', content: '设备"朝阳大悦城3号机"CPU温度过高，建议检查散热', type: 'notification', target: 'device', targetId: 'd3', targetName: '朝阳大悦城3号机', targetType: 'device', status: 'sent', isRead: false, sentAt: '2025-06-23T09:15:00Z', createdAt: '2025-06-23T09:15:00Z' },
+];
+
+export const mockMediaFiles: MediaFile[] = [
+  { id: 'f1', name: 'idol_avatar_001.png', type: 'image', size: 256000, url: '/placeholder.png', bucket: 'idol-avatars', uploader: 'admin', bindType: 'idol', bindTarget: 'r1', uploadedAt: '2025-06-15T10:30:00Z', uploadedBy: 'admin' },
+  { id: 'f2', name: 'boot_animation.mp4', type: 'video', size: 15360000, url: '/placeholder.mp4', bucket: 'boot-animations', uploader: 'admin', bindType: 'device', bindTarget: 'd1', uploadedAt: '2025-06-14T08:20:00Z', uploadedBy: 'admin' },
+  { id: 'f3', name: 'product_banner.jpg', type: 'image', size: 512000, url: '/placeholder.jpg', bucket: 'product-images', uploader: 'operator1', bindType: 'product', bindTarget: 'p1', uploadedAt: '2025-06-13T16:45:00Z', uploadedBy: 'operator1' },
+  { id: 'f4', name: 'idol_voice_sample.wav', type: 'audio', size: 1024000, url: '/placeholder.wav', bucket: 'voice-samples', uploader: 'admin', bindType: 'idol', bindTarget: 'v1', uploadedAt: '2025-06-12T09:15:00Z', uploadedBy: 'admin' },
+  { id: 'f5', name: 'venue_map.png', type: 'image', size: 380000, url: '/placeholder.png', bucket: 'venue-images', uploader: 'operator1', bindType: 'none', uploadedAt: '2025-06-11T14:00:00Z', uploadedBy: 'operator1' },
+  { id: 'f6', name: 'promo_video.mp4', type: 'video', size: 25600000, url: '/placeholder.mp4', bucket: 'product-images', uploader: 'admin', bindType: 'product', bindTarget: 'p2', uploadedAt: '2025-06-10T11:30:00Z', uploadedBy: 'admin' },
+  { id: 'f7', name: 'lottery_bg.jpg', type: 'image', size: 180000, url: '/placeholder.jpg', bucket: 'lottery-assets', uploader: 'operator1', bindType: 'none', uploadedAt: '2025-06-09T08:45:00Z', uploadedBy: 'operator1' },
+  { id: 'f8', name: 'flash_message_bg.png', type: 'image', size: 420000, url: '/placeholder.png', bucket: 'flash-assets', uploader: 'admin', bindType: 'none', uploadedAt: '2025-06-08T13:20:00Z', uploadedBy: 'admin' },
 ];
